@@ -1,6 +1,6 @@
 import { Column, Entity } from 'typeorm';
 import { BaseEntity } from './base/base.entity';
-import { OrderStatus } from './enums/order-status.enum';
+import { OrderStatus } from '../enums/order-status.enum';
 
 @Entity({ name: 'orders', schema: 'e_orders' })
 export class OrderEntity extends BaseEntity {
