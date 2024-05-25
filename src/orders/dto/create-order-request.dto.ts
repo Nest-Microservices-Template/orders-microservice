@@ -7,7 +7,7 @@ import {
 } from 'class-validator';
 import { OrderStatus, OrderStatusList } from '../enums/order-status.enum';
 
-export class CreateOrderDto {
+export class CreateOrderRequestDto {
   @IsNumber()
   @IsPositive()
   totalAmount: number;
