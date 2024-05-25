@@ -16,6 +16,6 @@ export class OrderEntity extends BaseEntity {
   @Column({ name: 'paid', default: false })
   paid: boolean;
 
-  @Column({ type: 'timestamp', name: 'paid_at' })
-  paidAt: Date;
+  @Column({ type: 'timestamp', name: 'paid_at', nullable: true })
+  paidAt: Date | null;
 }
