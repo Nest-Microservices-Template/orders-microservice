@@ -1,12 +1,13 @@
 import { Controller, ParseUUIDPipe } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import { CreateOrderRequestDto } from './dto';
+import { ChangeOrderStatusDto, CreateOrderRequestDto } from './dto';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { CreateOrderCommand } from './commands/impl/create-order.command';
 import { GetOrderQuery } from './queries/impl/get-order.query';
 import { OrderPaginationDto } from './dto/order-pagination.dto';
 import { GetAllOrdersResponseDto } from './dto/getall-orders-response.dto';
 import { GetAllOrdersQuery } from './queries/impl/getall-orders.query';
+import { ChangeOrderStatusCommand } from './commands/impl/change-order-status.command';
 
 @Controller()
 export class OrdersController {
@@ -37,5 +38,11 @@ export class OrdersController {
   }
 
   @MessagePattern('changeOrderStatus')
-  changeOrderStatus() {}
+  async changeOrderStatus(
+    @Payload() changeOrderStatusDto: ChangeOrderStatusDto,
+  ) {
+    return await this.commandBus.execute(
+      new ChangeOrderStatusCommand(changeOrderStatusDto),
+    );
+  }
 }
