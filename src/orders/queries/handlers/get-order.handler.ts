@@ -1,18 +1,28 @@
 import { IQueryHandler, QueryHandler } from '@nestjs/cqrs';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
-import { HttpStatus } from '@nestjs/common';
-import { RpcException } from '@nestjs/microservices';
+import { HttpStatus, Inject } from '@nestjs/common';
+import { ClientProxy, RpcException } from '@nestjs/microservices';
 import { CustomLoggerService } from '../../../common/Logger/customerLogger.service';
 import { GetOrderQuery } from '../impl/get-order.query';
 import { OrderEntity } from '../../entities/order.entity';
+import { PRODUCT_SERVICE } from '../../../config/services';
+import { OrderItemEntity } from '../../entities/orderItem.entity';
+import { firstValueFrom } from 'rxjs';
 
 @QueryHandler(GetOrderQuery)
 export class GetOrderHandler implements IQueryHandler<GetOrderQuery> {
   constructor(
     private readonly _loggerService: CustomLoggerService,
+
     @InjectRepository(OrderEntity)
-    private readonly repository: Repository<OrderEntity>,
+    private readonly orderRepository: Repository<OrderEntity>,
+
+    @InjectRepository(OrderItemEntity)
+    private readonly orderItemRepository: Repository<OrderItemEntity>,
+
+    @Inject(PRODUCT_SERVICE)
+    private readonly productsClient: ClientProxy,
   ) {}
 
   async execute(query: GetOrderQuery) {
@@ -44,21 +54,41 @@ export class GetOrderHandler implements IQueryHandler<GetOrderQuery> {
 
   private async getOrder(orderId: string) {
     this._loggerService.info(
-      `[${GetOrderHandler.name}] - Retrieving product ${orderId}`,
+      `[${GetOrderHandler.name}] - Retrieving order ${orderId}`,
     );
 
-    const order: OrderEntity = await this.repository.findOne({
+    const order: OrderEntity = await this.orderRepository.findOne({
       where: { uuid: orderId },
+      relations: ['items'],
     });
 
     if (!order) {
       this._loggerService.error(
-        `[${GetOrderHandler.name}] - Customer ${orderId} does not found`,
+        `[${GetOrderHandler.name}] - Order ${orderId} not found`,
       );
 
-      throw new Error(`Order with ID ${orderId} not found.`);
+      throw new RpcException({
+        message: `Order with ID ${orderId} not found.`,
+        status: HttpStatus.NOT_FOUND,
+      });
     }
 
-    return order;
+    const productIds = order.items.map((item) => item.productId);
+    const products: any[] = await firstValueFrom(
+      this.productsClient.send({ cmd: 'validate_products' }, productIds),
+    );
+
+    const orderWithProductNames = {
+      ...order,
+      items: order.items.map((orderItem) => ({
+        price: orderItem.price,
+        quantity: orderItem.quantity,
+        productId: orderItem.productId,
+        name: products.find((product) => product.uuid === orderItem.productId)
+          ?.name,
+      })),
+    };
+
+    return orderWithProductNames;
   }
 }
