@@ -1,7 +1,8 @@
 import { OrderEntity } from '../../orders/entities/order.entity';
+import { OrderItemEntity } from '../../orders/entities/orderItem.entity';
 export const config = {
   db: {
-    entities: [OrderEntity],
+    entities: [OrderEntity, OrderItemEntity],
     type: 'postgres',
     host: process.env.DB_HOST,
     port: process.env.DB_PORT,
