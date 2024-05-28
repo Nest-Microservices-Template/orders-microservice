@@ -6,7 +6,6 @@ import { CustomLoggerService } from '../../../common/Logger/customerLogger.servi
 import { OrderEntity } from '../../entities/order.entity';
 import { RpcException } from '@nestjs/microservices';
 import { ChangeOrderStatusCommand } from '../impl/change-order-status.command';
-import { GetOrderHandler } from '../../queries/handlers/get-order.handler';
 import { GetOrderQuery } from '../../queries/impl/get-order.query';
 
 @CommandHandler(ChangeOrderStatusCommand)
@@ -17,7 +16,6 @@ export class ChangeOrderStatusHandler
     private readonly _loggerService: CustomLoggerService,
     @InjectRepository(OrderEntity)
     private readonly repository: Repository<OrderEntity>,
-    private readonly getOrderHandler: GetOrderHandler,
     private readonly queryBus: QueryBus,
   ) {}
 
@@ -29,16 +27,22 @@ export class ChangeOrderStatusHandler
       return await this.changeOrderStatus(command);
     } catch (error) {
       this._loggerService.error(
-        `[${ChangeOrderStatusHandler.name}] - Error executing query ${JSON.stringify(
-          command,
-        )}. Error: ${error.message} `,
+        `[${ChangeOrderStatusHandler.name}] - Error executing command ${JSON.stringify(command)}. Error: ${error.message} `,
         error.stack,
       );
 
-      throw new RpcException({
-        message: 'An error occurred: ' + error.message,
-        status: HttpStatus.INTERNAL_SERVER_ERROR,
-      });
+      if (error instanceof RpcException) {
+        const rpcError = error.getError();
+        throw new RpcException({
+          message: rpcError['message'] || error.message,
+          status: rpcError['status'] || HttpStatus.INTERNAL_SERVER_ERROR,
+        });
+      } else {
+        throw new RpcException({
+          message: 'error: ' + error.message,
+          status: error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+        });
+      }
     }
   }
 
@@ -51,6 +55,13 @@ export class ChangeOrderStatusHandler
 
     const { id, status } = command.changeOrderStatus;
     const order = await this.queryBus.execute(new GetOrderQuery(id));
+
+    if (!order) {
+      throw new RpcException({
+        message: `Order with ID ${id} not found.`,
+        status: HttpStatus.NOT_FOUND,
+      });
+    }
 
     if (order.status === status) {
       this._loggerService.info(

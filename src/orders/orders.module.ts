@@ -8,7 +8,7 @@ import { CustomLoggerService } from '../common/Logger/customerLogger.service';
 import { QueryHandlers } from './queries/handlers';
 import { OrderItemEntity } from './entities/orderItem.entity';
 import { ClientsModule, Transport } from '@nestjs/microservices';
-import { PRODUCT_SERVICE } from '../config/services';
+import { NATS_SERVICE } from '../config/services';
 import { envs } from '../config/envs';
 
 @Module({
@@ -17,11 +17,10 @@ import { envs } from '../config/envs';
     TypeOrmModule.forFeature([OrderEntity, OrderItemEntity]),
     ClientsModule.register([
       {
-        name: PRODUCT_SERVICE,
-        transport: Transport.TCP,
+        name: NATS_SERVICE,
+        transport: Transport.NATS,
         options: {
-          host: envs.productsMicroserviceHost,
-          port: envs.productsMicroservicePort,
+          servers: envs.natsServers,
         },
       },
     ]),

@@ -6,7 +6,7 @@ import { CustomLoggerService } from '../../../common/Logger/customerLogger.servi
 import { CreateOrderCommand } from '../impl/create-order.command';
 import { OrderEntity } from '../../entities/order.entity';
 import { ClientProxy, RpcException } from '@nestjs/microservices';
-import { PRODUCT_SERVICE } from '../../../config/services';
+import { NATS_SERVICE } from '../../../config/services';
 import { firstValueFrom } from 'rxjs';
 import { OrderItemEntity } from '../../entities/orderItem.entity';
 import { OrderStatus } from 'src/orders/enums/order-status.enum';
@@ -22,8 +22,8 @@ export class CreateOrderHanlder implements ICommandHandler<CreateOrderCommand> {
     @InjectRepository(OrderItemEntity)
     private readonly orderItemRepository: Repository<OrderItemEntity>,
 
-    @Inject(PRODUCT_SERVICE)
-    private readonly productsClient: ClientProxy,
+    @Inject(NATS_SERVICE)
+    private readonly client: ClientProxy,
   ) {}
 
   async execute(command: CreateOrderCommand): Promise<OrderEntity> {
@@ -55,7 +55,7 @@ export class CreateOrderHanlder implements ICommandHandler<CreateOrderCommand> {
       (item) => item.productId,
     );
     const products: any[] = await firstValueFrom(
-      this.productsClient.send({ cmd: 'validate_products' }, productIds),
+      this.client.send('validate_products', productIds),
     );
 
     // Validar que todos los productos se encontraron

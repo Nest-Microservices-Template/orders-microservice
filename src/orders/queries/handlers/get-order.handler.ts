@@ -6,7 +6,7 @@ import { ClientProxy, RpcException } from '@nestjs/microservices';
 import { CustomLoggerService } from '../../../common/Logger/customerLogger.service';
 import { GetOrderQuery } from '../impl/get-order.query';
 import { OrderEntity } from '../../entities/order.entity';
-import { PRODUCT_SERVICE } from '../../../config/services';
+import { NATS_SERVICE } from '../../../config/services';
 import { OrderItemEntity } from '../../entities/orderItem.entity';
 import { firstValueFrom } from 'rxjs';
 
@@ -21,8 +21,8 @@ export class GetOrderHandler implements IQueryHandler<GetOrderQuery> {
     @InjectRepository(OrderItemEntity)
     private readonly orderItemRepository: Repository<OrderItemEntity>,
 
-    @Inject(PRODUCT_SERVICE)
-    private readonly productsClient: ClientProxy,
+    @Inject(NATS_SERVICE)
+    private readonly client: ClientProxy,
   ) {}
 
   async execute(query: GetOrderQuery) {
@@ -45,9 +45,13 @@ export class GetOrderHandler implements IQueryHandler<GetOrderQuery> {
         )}. Error: ${error.message}`,
       );
 
+      if (error instanceof RpcException) {
+        throw error; // Re-lanza la excepción original
+      }
+
       throw new RpcException({
-        message: 'An error occurred: ' + error.message,
-        status: HttpStatus.NOT_FOUND,
+        message: 'error occurred: ' + error.message,
+        status: error.status || HttpStatus.INTERNAL_SERVER_ERROR,
       });
     }
   }
@@ -75,7 +79,7 @@ export class GetOrderHandler implements IQueryHandler<GetOrderQuery> {
 
     const productIds = order.items.map((item) => item.productId);
     const products: any[] = await firstValueFrom(
-      this.productsClient.send({ cmd: 'validate_products' }, productIds),
+      this.client.send('validate_products', productIds),
     );
 
     const orderWithProductNames = {
