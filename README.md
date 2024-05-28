@@ -4,6 +4,18 @@
 
 Esta microservice está diseñado siguiendo el patrón de arquitectura CQRS (Command Query Responsibility Segregation), aplicando principios de código limpio SOLID, patron de eventos y con pruebas unitarias integradas.
 
+## Diagrama de Arquitectura
+
+Para ver el diagrama de arquitectura del microservice, haz clic en el siguiente enlace:
+
+[Diagrama de Arquitectura](docs/img/Diagrama_arquitectura.png)
+
+## Diagrama de flujo
+
+Para ver el diagrama de flujo, haz clic en el siguiente enlace:
+
+[Diagrama de flujo](docs/img/Diagrama_flujo.png)
+
 ## Configuración
 
 ### Requisitos
