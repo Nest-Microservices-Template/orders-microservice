@@ -7,23 +7,13 @@ import { CommandHandlers } from './commands/handlers';
 import { CustomLoggerService } from '../common/Logger/customerLogger.service';
 import { QueryHandlers } from './queries/handlers';
 import { OrderItemEntity } from './entities/orderItem.entity';
-import { ClientsModule, Transport } from '@nestjs/microservices';
-import { NATS_SERVICE } from '../config/services';
-import { envs } from '../config/envs';
+import { NatsModule } from '../transports/nats.module';
 
 @Module({
   imports: [
     CqrsModule,
     TypeOrmModule.forFeature([OrderEntity, OrderItemEntity]),
-    ClientsModule.register([
-      {
-        name: NATS_SERVICE,
-        transport: Transport.NATS,
-        options: {
-          servers: envs.natsServers,
-        },
-      },
-    ]),
+    NatsModule,
   ],
   controllers: [OrdersController],
   providers: [...CommandHandlers, ...QueryHandlers, CustomLoggerService],
