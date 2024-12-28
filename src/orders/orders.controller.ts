@@ -12,8 +12,8 @@ import { ChangeOrderStatusCommand } from './commands/impl/change-order-status.co
 @Controller()
 export class OrdersController {
   constructor(
-    private commandBus: CommandBus,
-    private queryBus: QueryBus,
+    private readonly commandBus: CommandBus,
+    private readonly queryBus: QueryBus,
   ) {}
 
   @MessagePattern('createOrder')
