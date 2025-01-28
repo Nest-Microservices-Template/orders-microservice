@@ -10,7 +10,7 @@ interface EnvVars {
   DB_DATABASE: string;
   DB_PORT: number;
 
-  NATS_SERVERS: string[];
+  KAFKA_SERVER: string[];
 }
 
 const envsSchema = joi
@@ -22,13 +22,13 @@ const envsSchema = joi
     DB_DATABASE: joi.string().required(),
     DB_PORT: joi.number().required(),
 
-    NATS_SERVERS: joi.array().items(joi.string()).required(),
+    KAFKA_SERVER: joi.array().items(joi.string()).required(),
   })
   .unknown(true);
 
 const { error, value } = envsSchema.validate({
   ...process.env,
-  NATS_SERVERS: process.env.NATS_SERVERS?.split(','),
+  KAFKA_SERVER: process.env.KAFKA_SERVER?.split(','),
 });
 
 if (error) {
@@ -40,5 +40,5 @@ const envVars: EnvVars = value;
 export const envs = {
   port: envVars.PORT,
 
-  natsServers: envVars.NATS_SERVERS,
+  kafkaBroker: envVars.KAFKA_SERVER,
 };

@@ -7,13 +7,13 @@ import { CommandHandlers } from './commands/handlers';
 import { CustomLoggerService } from '../common/Logger/customerLogger.service';
 import { QueryHandlers } from './queries/handlers';
 import { OrderItemEntity } from './entities/orderItem.entity';
-import { NatsModule } from '../transports/nats.module';
+import { KafkaModule } from '../transports/kafka.module';
 
 @Module({
   imports: [
     CqrsModule,
     TypeOrmModule.forFeature([OrderEntity, OrderItemEntity]),
-    NatsModule,
+    KafkaModule,
   ],
   controllers: [OrdersController],
   providers: [...CommandHandlers, ...QueryHandlers, CustomLoggerService],

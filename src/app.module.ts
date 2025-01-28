@@ -3,6 +3,7 @@ import { OrdersModule } from './orders/orders.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { configuration } from './config';
 import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
+import { KafkaModule } from './transports/kafka.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
       inject: [ConfigService],
     }),
     OrdersModule,
+    KafkaModule,
   ],
   controllers: [],
   providers: [],
