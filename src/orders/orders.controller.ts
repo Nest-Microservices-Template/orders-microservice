@@ -1,5 +1,5 @@
 import { Controller, ParseUUIDPipe } from '@nestjs/common';
-import { MessagePattern, Payload } from '@nestjs/microservices';
+import { EventPattern, MessagePattern, Payload } from '@nestjs/microservices';
 import { ChangeOrderStatusDto, CreateOrderRequestDto } from './dto';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { CreateOrderCommand } from './commands/impl/create-order.command';
@@ -18,9 +18,14 @@ export class OrdersController {
 
   @MessagePattern('createOrder')
   async createOrder(@Payload() createOrderDto: CreateOrderRequestDto) {
-    return await this.commandBus.execute(
+    const order = await this.commandBus.execute(
       new CreateOrderCommand(createOrderDto),
     );
+
+    const plainResponse = JSON.parse(JSON.stringify(order));
+
+    console.log('[Products Microservice] Transformed response:', plainResponse);
+    return plainResponse;
   }
 
   @MessagePattern('findOneOrder')
@@ -44,5 +49,11 @@ export class OrdersController {
     return await this.commandBus.execute(
       new ChangeOrderStatusCommand(changeOrderStatusDto),
     );
+  }
+
+  @EventPattern('order_created')
+  async handleOrderCreated(data: any) {
+    // Manejar el evento
+    console.log('Order created:', data);
   }
 }

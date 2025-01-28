@@ -5,8 +5,7 @@ import { HttpStatus, Inject } from '@nestjs/common';
 import { CustomLoggerService } from '../../../common/Logger/customerLogger.service';
 import { CreateOrderCommand } from '../impl/create-order.command';
 import { OrderEntity } from '../../entities/order.entity';
-import { ClientProxy, RpcException } from '@nestjs/microservices';
-import { NATS_SERVICE } from '../../../config/services';
+import { ClientKafka, RpcException } from '@nestjs/microservices';
 import { firstValueFrom } from 'rxjs';
 import { OrderItemEntity } from '../../entities/orderItem.entity';
 import { OrderStatus } from 'src/orders/enums/order-status.enum';
@@ -22,8 +21,8 @@ export class CreateOrderHanlder implements ICommandHandler<CreateOrderCommand> {
     @InjectRepository(OrderItemEntity)
     private readonly orderItemRepository: Repository<OrderItemEntity>,
 
-    @Inject(NATS_SERVICE)
-    private readonly client: ClientProxy,
+    @Inject('KAFKA_CLIENT')
+    private readonly kafkaClient: ClientKafka,
   ) {}
 
   async execute(command: CreateOrderCommand): Promise<OrderEntity> {
@@ -55,7 +54,7 @@ export class CreateOrderHanlder implements ICommandHandler<CreateOrderCommand> {
       (item) => item.productId,
     );
     const products: any[] = await firstValueFrom(
-      this.client.send('validate_products', productIds),
+      this.kafkaClient.send('validate_products', productIds),
     );
 
     // Validar que todos los productos se encontraron

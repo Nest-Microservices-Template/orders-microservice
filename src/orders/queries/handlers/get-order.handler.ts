@@ -2,11 +2,10 @@ import { IQueryHandler, QueryHandler } from '@nestjs/cqrs';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { HttpStatus, Inject } from '@nestjs/common';
-import { ClientProxy, RpcException } from '@nestjs/microservices';
+import { ClientKafka, RpcException } from '@nestjs/microservices';
 import { CustomLoggerService } from '../../../common/Logger/customerLogger.service';
 import { GetOrderQuery } from '../impl/get-order.query';
 import { OrderEntity } from '../../entities/order.entity';
-import { NATS_SERVICE } from '../../../config/services';
 import { OrderItemEntity } from '../../entities/orderItem.entity';
 import { firstValueFrom } from 'rxjs';
 
@@ -21,8 +20,8 @@ export class GetOrderHandler implements IQueryHandler<GetOrderQuery> {
     @InjectRepository(OrderItemEntity)
     private readonly orderItemRepository: Repository<OrderItemEntity>,
 
-    @Inject(NATS_SERVICE)
-    private readonly client: ClientProxy,
+    @Inject('KAFKA_CLIENT')
+    private readonly client: ClientKafka,
   ) {}
 
   async execute(query: GetOrderQuery) {
