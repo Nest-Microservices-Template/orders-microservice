@@ -9,7 +9,15 @@ export class KafkaClientService implements OnModuleInit {
 
   async onModuleInit() {
     console.log('Subscribing to validate_products.reply...');
-    this.kafkaClient.subscribeToResponseOf('validate_products');
+
+    // Suscribirse a múltiples topics de respuesta
+    const replyTopics = ['validate_products'];
+
+    replyTopics.forEach((topic) => {
+      this.kafkaClient.subscribeToResponseOf(topic);
+      console.log(`Subscribed to topic: ${topic}`);
+    });
+
     await this.kafkaClient.connect();
     console.log('Kafka client connected and subscribed to reply topics.');
   }
